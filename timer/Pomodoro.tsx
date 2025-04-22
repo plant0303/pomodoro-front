@@ -1,10 +1,116 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, Dimensions, View, TextInput } from 'react-native';
 import { Typography } from '../styles/Typography';
+import { Svg, Defs, LinearGradient, Stop, Circle, Line } from 'react-native-svg';
+
+import { default as PomodoroTimer } from '../styles/timer/PomodoroTimer';
+
+
+const { width } = Dimensions.get('window');
+const SVG_SIZE = width * 0.8; // 화면 너비의 80% 크기
+
+// 눈금 생성
+
+interface TickMarksProps {
+  total?: number;
+  cx?: number;
+  cy?: number;
+  radius?: number;
+}
+
+const TickMarks : React.FC<TickMarksProps> = ({
+  total = 60,
+  cx = 60,
+  cy = 60,
+  radius = 50,
+}) => {
+  const marks = Array.from({ length: total }, (_, i) => {
+
+    const angle = (i / total) * 360;
+    const x1 = cx;
+    const y1 = 20;
+    const x2 = cy;
+    const y2 = 17;
+
+    return (
+      <Line
+        key={i}
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke="#ccc"
+        strokeWidth={i % 15 === 0 ? 0.7 : 0.2}
+        transform={`rotate(${angle} ${cx} ${cy})`}
+      />
+    );
+  });
+
+  return <>{marks}</>
+}
 
 const Pomodoro = () => {
   return (
-    <View>
-      <Text style={Typography.h1}>제목</Text>
+    <View style={PomodoroTimer.timerCont}>
+      <Svg
+        viewBox="0 0 120 120"
+        width={SVG_SIZE}
+        height={SVG_SIZE}
+      >
+        <Defs>
+          <LinearGradient id="grad" x1="0%" y1="100%" x2="80%" y2="100%">
+            <Stop offset="0%" stopColor="#ffd455" />
+            <Stop offset="100%" stopColor="#ff4500" />
+          </LinearGradient>
+        </Defs>
+        <Circle
+          cx="60"
+          cy="60"
+          r="50"
+          fill="none"
+          stroke="#ddd"
+          strokeWidth="10"
+        />
+        <Circle
+          cx="60"
+          cy="60"
+          r="50"
+          fill="none"
+          stroke="url(#grad)"
+          strokeWidth="10"
+          transform="rotate(-90 60 60)"
+        />
+        <TickMarks/>
+      </Svg>
+
+      <View style={PomodoroTimer.time}>
+
+        <View style={PomodoroTimer.mainTime}>
+          <Text>00</Text>
+          <Text>:</Text>
+          <Text>00</Text>
+        </View>
+
+        <View>
+          <Text>공부시간</Text>
+        </View>
+
+        <View style={PomodoroTimer.settings}>
+          <View>
+            <Text>work</Text>
+            <View style={PomodoroTimer.inputCont}>
+              <TextInput keyboardType='number-pad' value='25' style={PomodoroTimer.settingsInput}></TextInput>
+              <Text>min</Text>
+            </View>
+          </View>
+          <View>
+            <Text>break</Text>
+            <View style={PomodoroTimer.inputCont}>
+              <TextInput keyboardType='number-pad' value='5' style={PomodoroTimer.settingsInput}></TextInput>
+              <Text>min</Text>
+            </View>
+          </View>
+        </View>
+      </View>
     </View>
   );
 };
