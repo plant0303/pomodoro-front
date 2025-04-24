@@ -26,13 +26,25 @@ const PomodoroTimer = StyleSheet.create({
     alignItems: "center",
   },
 
+  settingCont: {
+    paddingRight: 10,
+    alignItems: "center",
+  },
+
   inputCont: {
     flexDirection: "row",
     alignItems: "center",
   },
 
   settingsInput: {
-    width: 20,
+    fontSize: 18,
+    width: 30,
+    alignItems: "flex-end"
+  },
+
+  btnCount: {
+    width: "100%",
+    alignItems: "center"
   }
 });
 

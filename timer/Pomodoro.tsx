@@ -1,15 +1,15 @@
-import { StyleSheet, Text, Dimensions, View, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, Dimensions, View, TextInput, Button, TouchableOpacity } from 'react-native';
 import { Typography } from '../styles/Typography';
 import { Svg, Defs, LinearGradient, Stop, Circle, Line } from 'react-native-svg';
 
+import { Global } from '../styles/Global';
 import { default as PomodoroTimer } from '../styles/timer/PomodoroTimer';
-
 
 const { width } = Dimensions.get('window');
 const SVG_SIZE = width * 0.8; // 화면 너비의 80% 크기
 
 // 눈금 생성
-
 interface TickMarksProps {
   total?: number;
   cx?: number;
@@ -48,7 +48,51 @@ const TickMarks : React.FC<TickMarksProps> = ({
   return <>{marks}</>
 }
 
+interface Timer {
+  type: 'work' | 'break';
+  duration: number;
+  remaining: number;
+}
+
 const Pomodoro = () => {
+
+  const [timers, setTimers] = useState<Timer[]>([
+    // 타입, 전체시간, 소모된 현재시간
+    { type: "work", duration: 25 * 60, remaining: 25 * 60}, // 공부시간(25분)
+    { type: "break", duration: 5 * 60, remaining: 5 * 60} // 휴식시간(5분)
+  ]);
+  const [currentTimerIndex, setCurrentTimerIndex] = useState(0); //현재 타이머
+  const [isRunning, setIsRunning] = useState(false); //실행여부
+
+  const currentTimer = timers[currentTimerIndex]; // 현재 활성화된 타이머
+
+// 타이머 시각화 관련
+  const radius = 50; //반지름
+  const circumference = 2 * Math.PI * radius; //원의 둘레
+  const strokeDashoffset = circumference - (currentTimer.remaining / 3600) * circumference; // 남은 스트로크
+
+// 타이머 실행
+useEffect(() => {
+  if (!isRunning) return;
+
+  const interval = setInterval(() => {
+    setTimers((prevTimers) => {
+      const newTimers = [...prevTimers];
+
+      if(newTimers[currentTimerIndex].remaining > 0){
+        newTimers[currentTimerIndex].remaining -= 1;
+      }else{
+        clearInterval(interval);
+        setIsRunning(false);
+      }
+      return newTimers;
+    });
+  }, 1000);
+
+  // ✅ clean-up 함수 반환
+  return () => clearInterval(interval);
+}, [isRunning, currentTimerIndex]);
+
   return (
     <View style={PomodoroTimer.timerCont}>
       <Svg
@@ -78,6 +122,8 @@ const Pomodoro = () => {
           stroke="url(#grad)"
           strokeWidth="10"
           transform="rotate(-90 60 60)"
+          strokeDasharray={circumference} // 원의 둘레
+          strokeDashoffset={strokeDashoffset} // 스트로크 오프셋
         />
         <TickMarks/>
       </Svg>
@@ -95,14 +141,15 @@ const Pomodoro = () => {
         </View>
 
         <View style={PomodoroTimer.settings}>
-          <View>
+          <View style={PomodoroTimer.settingCont}>
             <Text>work</Text>
             <View style={PomodoroTimer.inputCont}>
               <TextInput keyboardType='number-pad' value='25' style={PomodoroTimer.settingsInput}></TextInput>
               <Text>min</Text>
             </View>
           </View>
-          <View>
+
+          <View style={PomodoroTimer.settingCont}>
             <Text>break</Text>
             <View style={PomodoroTimer.inputCont}>
               <TextInput keyboardType='number-pad' value='5' style={PomodoroTimer.settingsInput}></TextInput>
@@ -110,6 +157,12 @@ const Pomodoro = () => {
             </View>
           </View>
         </View>
+      </View>
+
+      <View style={PomodoroTimer.btnCount}>
+        <TouchableOpacity style={[Global.button, Global.activeBtn]} onPress={() => setIsRunning(true)}>
+          <Text style={Global.buttonText}>시작하기</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
