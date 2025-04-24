@@ -131,9 +131,9 @@ useEffect(() => {
       <View style={PomodoroTimer.time}>
 
         <View style={PomodoroTimer.mainTime}>
-          <Text>00</Text>
+          <Text>{Math.floor(currentTimer.remaining / 60)}</Text>
           <Text>:</Text>
-          <Text>00</Text>
+          <Text>{(currentTimer.remaining % 60).toString().padStart(2, "0")}</Text>
         </View>
 
         <View>
@@ -144,7 +144,7 @@ useEffect(() => {
           <View style={PomodoroTimer.settingCont}>
             <Text>work</Text>
             <View style={PomodoroTimer.inputCont}>
-              <TextInput keyboardType='number-pad' value='25' style={PomodoroTimer.settingsInput}></TextInput>
+              <TextInput keyboardType='number-pad' value={String(timers[0].duration / 60)} style={PomodoroTimer.settingsInput}></TextInput>
               <Text>min</Text>
             </View>
           </View>
