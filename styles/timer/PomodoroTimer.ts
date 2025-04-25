@@ -21,7 +21,14 @@ const PomodoroTimer = StyleSheet.create({
     alignItems: "center",
   },
 
+  mainTimeText: {
+    fontSize: 24,
+    paddingLeft: 5,
+    paddingRight: 5
+  },
+
   settings: {
+    marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -31,6 +38,10 @@ const PomodoroTimer = StyleSheet.create({
     alignItems: "center",
   },
 
+  settingText: {
+    color: "#666"
+  },
+
   inputCont: {
     flexDirection: "row",
     alignItems: "center",
@@ -38,8 +49,11 @@ const PomodoroTimer = StyleSheet.create({
 
   settingsInput: {
     fontSize: 18,
-    width: 30,
-    alignItems: "flex-end"
+    width: 25,
+    alignItems: "flex-end",
+    textAlign: "right",
+    marginRight: 5,
+    paddingRight: 3
   },
 
   btnCount: {

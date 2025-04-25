@@ -17,7 +17,7 @@ interface TickMarksProps {
   radius?: number;
 }
 
-const TickMarks : React.FC<TickMarksProps> = ({
+const TickMarks: React.FC<TickMarksProps> = ({
   total = 60,
   cx = 60,
   cy = 60,
@@ -58,41 +58,59 @@ const Pomodoro = () => {
 
   const [timers, setTimers] = useState<Timer[]>([
     // 타입, 전체시간, 소모된 현재시간
-    { type: "work", duration: 25 * 60, remaining: 25 * 60}, // 공부시간(25분)
-    { type: "break", duration: 5 * 60, remaining: 5 * 60} // 휴식시간(5분)
+    { type: "work", duration: 25 * 60, remaining: 25 * 60 }, // 공부시간(25분)
+    { type: "break", duration: 5 * 60, remaining: 5 * 60 } // 휴식시간(5분)
   ]);
   const [currentTimerIndex, setCurrentTimerIndex] = useState(0); //현재 타이머
   const [isRunning, setIsRunning] = useState(false); //실행여부
 
   const currentTimer = timers[currentTimerIndex]; // 현재 활성화된 타이머
 
-// 타이머 시각화 관련
+  // 타이머 시각화 관련
   const radius = 50; //반지름
   const circumference = 2 * Math.PI * radius; //원의 둘레
   const strokeDashoffset = circumference - (currentTimer.remaining / 3600) * circumference; // 남은 스트로크
 
-// 타이머 실행
-useEffect(() => {
-  if (!isRunning) return;
+  // 타이머 실행
+  useEffect(() => {
+    if (!isRunning) return;
 
-  const interval = setInterval(() => {
+    const interval = setInterval(() => {
+      setTimers((prevTimers) => {
+        const newTimers = [...prevTimers];
+
+        if (newTimers[currentTimerIndex].remaining > 0) {
+          newTimers[currentTimerIndex].remaining -= 1;
+        } else {
+          clearInterval(interval);
+          setIsRunning(false);
+        }
+        return newTimers;
+      });
+    }, 1000);
+
+    // ✅ clean-up 함수 반환
+    return () => clearInterval(interval);
+  }, [isRunning, currentTimerIndex]);
+
+  // 공부시간 입력받기
+  const updateTimerSettings = (index: number, newDuration: number) => {
+    if(isRunning) return;
+
     setTimers((prevTimers) => {
       const newTimers = [...prevTimers];
 
-      if(newTimers[currentTimerIndex].remaining > 0){
-        newTimers[currentTimerIndex].remaining -= 1;
-      }else{
-        clearInterval(interval);
-        setIsRunning(false);
+      if(newDuration > 60) {
+        newDuration = 60;
       }
+      newTimers[index] = {
+        ...newTimers[index],
+        duration: newDuration * 60,
+        remaining: newDuration * 60,
+      };
       return newTimers;
     });
-  }, 1000);
-
-  // ✅ clean-up 함수 반환
-  return () => clearInterval(interval);
-}, [isRunning, currentTimerIndex]);
-
+  };
   return (
     <View style={PomodoroTimer.timerCont}>
       <Svg
@@ -125,15 +143,15 @@ useEffect(() => {
           strokeDasharray={circumference} // 원의 둘레
           strokeDashoffset={strokeDashoffset} // 스트로크 오프셋
         />
-        <TickMarks/>
+        <TickMarks />
       </Svg>
 
       <View style={PomodoroTimer.time}>
 
         <View style={PomodoroTimer.mainTime}>
-          <Text>{Math.floor(currentTimer.remaining / 60)}</Text>
+          <Text style={PomodoroTimer.mainTimeText}>{Math.floor(currentTimer.remaining / 60)}</Text>
           <Text>:</Text>
-          <Text>{(currentTimer.remaining % 60).toString().padStart(2, "0")}</Text>
+          <Text style={PomodoroTimer.mainTimeText}>{(currentTimer.remaining % 60).toString().padStart(2, "0")}</Text>
         </View>
 
         <View>
@@ -142,17 +160,33 @@ useEffect(() => {
 
         <View style={PomodoroTimer.settings}>
           <View style={PomodoroTimer.settingCont}>
-            <Text>work</Text>
+            <Text style={PomodoroTimer.settingText}>work</Text>
             <View style={PomodoroTimer.inputCont}>
-              <TextInput keyboardType='number-pad' value={String(timers[0].duration / 60)} style={PomodoroTimer.settingsInput}></TextInput>
+              <TextInput
+                keyboardType='numeric'
+                inputMode="numeric"
+                value={String(timers[0].duration / 60)}
+                style={PomodoroTimer.settingsInput}
+                underlineColorAndroid="transparent"
+                placeholder="00"
+                onChangeText={(newDuration) => updateTimerSettings(0, Number(newDuration))}
+              >
+              </TextInput>
               <Text>min</Text>
             </View>
           </View>
 
           <View style={PomodoroTimer.settingCont}>
-            <Text>break</Text>
+            <Text style={PomodoroTimer.settingText}>break</Text>
             <View style={PomodoroTimer.inputCont}>
-              <TextInput keyboardType='number-pad' value='5' style={PomodoroTimer.settingsInput}></TextInput>
+              <TextInput 
+              keyboardType='numeric' 
+              inputMode="numeric"
+              value={String(timers[1].duration / 60)}
+              placeholder="00"
+              style={PomodoroTimer.settingsInput}
+              onChangeText={(newDuration) => updateTimerSettings(1, Number(newDuration))}
+              ></TextInput>
               <Text>min</Text>
             </View>
           </View>
@@ -160,9 +194,17 @@ useEffect(() => {
       </View>
 
       <View style={PomodoroTimer.btnCount}>
-        <TouchableOpacity style={[Global.button, Global.activeBtn]} onPress={() => setIsRunning(true)}>
-          <Text style={Global.buttonText}>시작하기</Text>
-        </TouchableOpacity>
+        {!isRunning && currentTimer.remaining === currentTimer.duration ? (
+          <TouchableOpacity style={[Global.button, Global.activeBtn]} onPress={() => setIsRunning(true)} activeOpacity={0.6}>
+            <Text style={Global.buttonText}>시작하기</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={[Global.button]} activeOpacity={0.6}>
+            {isRunning ?
+            <Text onPress={() => setIsRunning(!isRunning)} style={Global.buttonText}>일시정지</Text> : 
+            <Text onPress={() => setIsRunning(!isRunning)}  style={Global.buttonText}>계속하기</Text>}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 
 export const Global = StyleSheet.create({
   // 폰트 스타일
@@ -29,5 +29,9 @@ export const Global = StyleSheet.create({
 
   activeBtn: {
     backgroundColor: "#ffcd35",
+  },
+
+  TextInput: {
+    borderWidth: 0
   }
 });
