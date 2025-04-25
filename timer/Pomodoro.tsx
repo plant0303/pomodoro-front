@@ -63,6 +63,7 @@ const Pomodoro = () => {
   ]);
   const [currentTimerIndex, setCurrentTimerIndex] = useState(0); //현재 타이머
   const [isRunning, setIsRunning] = useState(false); //실행여부
+  const [isDragging, setIsDragging] = useState(false);
 
   const currentTimer = timers[currentTimerIndex]; // 현재 활성화된 타이머
 
@@ -111,8 +112,47 @@ const Pomodoro = () => {
       return newTimers;
     });
   };
+
+  // 타이머 마우스 이벤트 핸들러
+  const handleMouseDown = (e) => {
+    if(isRunning) return;
+    setIsDragging(true);
+
+    const { minutes } = calculateAngleAndTime(e);
+    const newDuration = minutes * 60;
+    setTimers((prevTime)=> {
+      const newTimers = [...prevTime];
+      newTimers[currentTimerIndex] = {
+        ...newTimers[currentTimerIndex],
+        duration: newDuration,
+        remaining: newDuration
+      };
+      return newTimers;
+    });
+  };
+
+  // 각도 계산 함수
+
+  const calculateAngleAndTime = (e) => {
+    const rect = e.target.getBoundingClientRect();
+    const { pageX, pageY } = e.nativeEvent;
+    //svg 내부좌표로 변환
+    const svgX = ((pageX - rect.left) / rect.width) * 120;
+    const svgY = ((pageY - rect.top) / rect.height) * 120;
+
+    let angle = Math.atan2(svgY - 60, svgX - 60) * (180 / Math.PI);
+    angle = (angle + 90 + 360) % 360;
+
+    const minutes = angle >= 355 ? 60 : Math.round(angle/6);
+
+    return { angle, minutes };
+  }
+
   return (
-    <View style={PomodoroTimer.timerCont}>
+    <View style={PomodoroTimer.timerCont}
+          onStartShouldSetResponder={() => true}
+          onResponderGrant={handleMouseDown}
+    >
       <Svg
         viewBox="0 0 120 120"
         width={SVG_SIZE}
