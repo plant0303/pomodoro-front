@@ -96,12 +96,12 @@ const Pomodoro = () => {
 
   // 공부시간 입력받기
   const updateTimerSettings = (index: number, newDuration: number) => {
-    if(isRunning) return;
+    if (isRunning) return;
 
     setTimers((prevTimers) => {
       const newTimers = [...prevTimers];
 
-      if(newDuration > 60) {
+      if (newDuration > 60) {
         newDuration = 60;
       }
       newTimers[index] = {
@@ -113,14 +113,14 @@ const Pomodoro = () => {
     });
   };
 
-  // 타이머 마우스 이벤트 핸들러
+  // 타이머 터치 이벤트 핸들러
   const handleMouseDown = (e) => {
-    if(isRunning) return;
+    if (isRunning) return;
     setIsDragging(true);
 
     const { minutes } = calculateAngleAndTime(e);
     const newDuration = minutes * 60;
-    setTimers((prevTime)=> {
+    setTimers((prevTime) => {
       const newTimers = [...prevTime];
       newTimers[currentTimerIndex] = {
         ...newTimers[currentTimerIndex],
@@ -131,12 +131,29 @@ const Pomodoro = () => {
     });
   };
 
+  // 타이머 드래그
+  const handleMouseMove = (e) => {
+    if (!isDragging || isRunning) return;
+
+    const { minutes } = calculateAngleAndTime(e);
+    const newDuration = minutes * 60;
+
+    setTimers((prevTimers) => {
+      const newTimers = [...prevTimers];
+      newTimers[currentTimerIndex] = {
+        ...newTimers[currentTimerIndex],
+        duration: newDuration,
+        remaining: newDuration, // 남은 시간도 새 duration으로 초기화
+      };
+      return newTimers;
+    });
+  }
   // 클릭 위치값 가져오기
   const [layout, setLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const handleLayout = (e) => {
     const { x, y, width, height } = e.nativeEvent.layout;
-    setLayout({ x, y, width, height});
+    setLayout({ x, y, width, height });
   };
 
   // 각도 계산 함수
@@ -149,7 +166,7 @@ const Pomodoro = () => {
     let angle = Math.atan2(svgY - 60, svgX - 60) * (180 / Math.PI);
     angle = (angle + 90 + 360) % 360;
 
-    const minutes = angle >= 355 ? 60 : Math.round(angle/6);
+    const minutes = angle >= 355 ? 60 : Math.round(angle / 6);
 
     return { angle, minutes };
   }
@@ -157,8 +174,9 @@ const Pomodoro = () => {
   return (
     <View style={PomodoroTimer.timerCont}
       onLayout={handleLayout}
-          onStartShouldSetResponder={() => true}
-          onResponderGrant={handleMouseDown}
+      onStartShouldSetResponder={() => true}
+      onResponderGrant={handleMouseDown}
+      onResponderMove={handleMouseMove}
     >
       <Svg
         viewBox="0 0 120 120"
@@ -226,13 +244,13 @@ const Pomodoro = () => {
           <View style={PomodoroTimer.settingCont}>
             <Text style={PomodoroTimer.settingText}>break</Text>
             <View style={PomodoroTimer.inputCont}>
-              <TextInput 
-              keyboardType='numeric' 
-              inputMode="numeric"
-              value={String(timers[1].duration / 60)}
-              placeholder="00"
-              style={PomodoroTimer.settingsInput}
-              onChangeText={(newDuration) => updateTimerSettings(1, Number(newDuration))}
+              <TextInput
+                keyboardType='numeric'
+                inputMode="numeric"
+                value={String(timers[1].duration / 60)}
+                placeholder="00"
+                style={PomodoroTimer.settingsInput}
+                onChangeText={(newDuration) => updateTimerSettings(1, Number(newDuration))}
               ></TextInput>
               <Text>min</Text>
             </View>
@@ -248,8 +266,8 @@ const Pomodoro = () => {
         ) : (
           <TouchableOpacity style={[Global.button]} activeOpacity={0.6}>
             {isRunning ?
-            <Text onPress={() => setIsRunning(!isRunning)} style={Global.buttonText}>일시정지</Text> : 
-            <Text onPress={() => setIsRunning(!isRunning)}  style={Global.buttonText}>계속하기</Text>}
+              <Text onPress={() => setIsRunning(!isRunning)} style={Global.buttonText}>일시정지</Text> :
+              <Text onPress={() => setIsRunning(!isRunning)} style={Global.buttonText}>계속하기</Text>}
           </TouchableOpacity>
         )}
       </View>
